@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dragon Wallet - Secure Crypto Wallet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -709,10 +712,131 @@
             margin-bottom: 15px;
             font-size: 16px;
         }
+
+        /* Auth Modal Styles */
+        .auth-modal {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-content {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            border: 1px solid var(--dragon-blue);
+        }
+
+        .auth-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--dragon-blue);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .auth-input {
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--dragon-blue);
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        .auth-button {
+            background-color: var(--dragon-blue);
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .auth-switch {
+            margin-top: 15px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .auth-switch a {
+            color: var(--dragon-blue);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #ff3b30;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--dragon-blue);
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Authentication Modal -->
+    <div class="auth-modal" id="authModal">
+        <div class="auth-content">
+            <h2 class="auth-title">Dragon Wallet</h2>
+            <div id="loginForm" class="auth-form">
+                <input type="email" id="loginEmail" class="auth-input" placeholder="Email" required>
+                <input type="password" id="loginPassword" class="auth-input" placeholder="Password" required>
+                <button id="loginButton" class="auth-button">Login</button>
+                <div class="auth-switch">
+                    Don't have an account? <a id="showRegister">Register</a>
+                </div>
+            </div>
+            <div id="registerForm" class="auth-form" style="display: none;">
+                <input type="text" id="registerName" class="auth-input" placeholder="Full Name" required>
+                <input type="email" id="registerEmail" class="auth-input" placeholder="Email" required>
+                <input type="password" id="registerPassword" class="auth-input" placeholder="Password" required>
+                <button id="registerButton" class="auth-button">Register</button>
+                <div class="auth-switch">
+                    Already have an account? <a id="showLogin">Login</a>
+                </div>
+            </div>
+            <div class="error-message" id="authError"></div>
+            <div class="loading-spinner" id="authSpinner"></div>
+        </div>
+    </div>
+
+    <!-- Main Wallet App -->
+    <div class="container" id="walletApp" style="display: none;">
         <header>
             <div class="logo">
                 <i class="fas fa-dragon"></i>
@@ -720,7 +844,8 @@
             </div>
             <div class="header-icons">
                 <i class="fas fa-qrcode" id="showQR"></i>
-                <i class="fas fa-cog"></i>
+                <i class="fas fa-user" id="userProfile"></i>
+                <i class="fas fa-sign-out-alt" id="logoutButton"></i>
             </div>
         </header>
 
@@ -729,10 +854,10 @@
             <div id="wallet" class="section active">
                 <div class="balance-card">
                     <div class="balance-label">Total Balance</div>
-                    <div class="balance-amount">$5,017.25</div>
+                    <div class="balance-amount" id="totalBalance">$0.00</div>
                     <div class="balance-change positive">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+8.2%</span>
+                        <span id="balanceChange">+0.0%</span>
                     </div>
                 </div>
 
@@ -764,7 +889,7 @@
                         </button>
                     </div>
                     <div class="address-value" id="walletAddress">
-                        0x7a4b5c6d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3
+                        Loading...
                     </div>
                 </div>
 
@@ -775,7 +900,7 @@
                     </div>
                     <div class="dm-coin-info">
                         <h3>DM Coin (DM)</h3>
-                        <p>Your DM balance: 1,250.75 DM ($2,501.50)</p>
+                        <p id="dmBalanceInfo">Your DM balance: 0 DM ($0.00)</p>
                     </div>
                 </div>
 
@@ -784,54 +909,8 @@
                     <span>Manage</span>
                 </div>
 
-                <div class="assets-list">
-                    <div class="asset-item">
-                        <div class="asset-icon dm-coin">
-                            DM
-                        </div>
-                        <div class="asset-details">
-                            <div class="asset-name">
-                                <span>DM Coin</span>
-                                <span class="asset-amount">1,250.75 DM</span>
-                            </div>
-                            <div class="asset-value">
-                                <span id="dm-price">$2,501.50</span>
-                                <span class="positive">+8.2%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="asset-item">
-                        <div class="asset-icon solana">
-                            <span>SOL</span>
-                        </div>
-                        <div class="asset-details">
-                            <div class="asset-name">
-                                <span>Solana</span>
-                                <span class="asset-amount">12.5 SOL</span>
-                            </div>
-                            <div class="asset-value">
-                                <span id="solana-price">$1,245.80</span>
-                                <span class="positive">+5.2%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="asset-item">
-                        <div class="asset-icon usdt">
-                            <span>USDT</span>
-                        </div>
-                        <div class="asset-details">
-                            <div class="asset-name">
-                                <span>Tether</span>
-                                <span class="asset-amount">520.45 USDT</span>
-                            </div>
-                            <div class="asset-value">
-                                <span>$520.45</span>
-                                <span>0.0%</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="assets-list" id="assetsList">
+                    <!-- Assets will be populated by JavaScript -->
                 </div>
             </div>
 
@@ -952,54 +1031,8 @@
                     <span>Transaction History</span>
                 </div>
 
-                <div class="transaction-list">
-                    <div class="transaction-item">
-                        <div class="transaction-icon">
-                            <i class="fas fa-arrow-down"></i>
-                        </div>
-                        <div class="transaction-details">
-                            <div class="transaction-title">
-                                <span>Received DM Coin</span>
-                                <span class="transaction-amount positive">+250 DM</span>
-                            </div>
-                            <div class="transaction-info">
-                                <span>From: 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b</span>
-                                <span>2 hours ago</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="transaction-item">
-                        <div class="transaction-icon">
-                            <i class="fas fa-arrow-up"></i>
-                        </div>
-                        <div class="transaction-details">
-                            <div class="transaction-title">
-                                <span>Sent Solana</span>
-                                <span class="transaction-amount negative">-2.5 SOL</span>
-                            </div>
-                            <div class="transaction-info">
-                                <span>To: 5vDjK6EitHjY7yL9X2n2L2W2n2L2W2n2L2W2n2L2W2n2L</span>
-                                <span>1 day ago</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="transaction-item">
-                        <div class="transaction-icon">
-                            <i class="fas fa-exchange-alt"></i>
-                        </div>
-                        <div class="transaction-details">
-                            <div class="transaction-title">
-                                <span>Swapped SOL to DM</span>
-                                <span class="transaction-amount">+500 DM</span>
-                            </div>
-                            <div class="transaction-info">
-                                <span>DragonSwap</span>
-                                <span>3 days ago</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="transaction-list" id="transactionList">
+                    <!-- Transactions will be populated by JavaScript -->
                 </div>
             </div>
         </div>
@@ -1031,8 +1064,8 @@
                 <div class="qr-code">
                     <span>QR Code Display</span>
                 </div>
-                <div class="address-value">
-                    0x7a4b5c6d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3
+                <div class="address-value" id="qrAddress">
+                    Loading...
                 </div>
                 <button class="close-modal" id="closeQRModal">Close</button>
             </div>
@@ -1064,9 +1097,467 @@
                 <button class="close-modal" id="closeSendModal">Close</button>
             </div>
         </div>
+
+        <!-- User Profile Modal -->
+        <div class="modal" id="profileModal">
+            <div class="modal-content">
+                <h3 class="modal-title">User Profile</h3>
+                <div class="user-info">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <div class="auth-input" id="profileName">Loading...</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <div class="auth-input" id="profileEmail">Loading...</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Wallet Address</label>
+                        <div class="auth-input" id="profileWallet">Loading...</div>
+                    </div>
+                </div>
+                <button class="close-modal" id="closeProfileModal">Close</button>
+            </div>
+        </div>
     </div>
 
     <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpcXq8gF3InYmOKAgMlFgRM9yp4ceCYyg",
+            authDomain: "dragon-wallet-3d563.firebaseapp.com",
+            databaseURL: "https://dragon-wallet-3d563-default-rtdb.firebaseio.com",
+            projectId: "dragon-wallet-3d563",
+            storageBucket: "dragon-wallet-3d563.firebasestorage.app",
+            messagingSenderId: "242079622955",
+            appId: "1:242079622955:web:90acda3366e312b3c7c76e"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        // DOM Elements
+        const authModal = document.getElementById('authModal');
+        const walletApp = document.getElementById('walletApp');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const showRegister = document.getElementById('showRegister');
+        const showLogin = document.getElementById('showLogin');
+        const loginButton = document.getElementById('loginButton');
+        const registerButton = document.getElementById('registerButton');
+        const authError = document.getElementById('authError');
+        const authSpinner = document.getElementById('authSpinner');
+        const logoutButton = document.getElementById('logoutButton');
+        const userProfile = document.getElementById('userProfile');
+        const profileModal = document.getElementById('profileModal');
+        const closeProfileModal = document.getElementById('closeProfileModal');
+        const profileName = document.getElementById('profileName');
+        const profileEmail = document.getElementById('profileEmail');
+        const profileWallet = document.getElementById('profileWallet');
+
+        // User data
+        let currentUser = null;
+        let userData = null;
+
+        // Authentication state observer
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                currentUser = user;
+                loadUserData();
+                authModal.style.display = 'none';
+                walletApp.style.display = 'flex';
+            } else {
+                // User is signed out
+                currentUser = null;
+                userData = null;
+                authModal.style.display = 'flex';
+                walletApp.style.display = 'none';
+            }
+        });
+
+        // Load user data from Firebase
+        function loadUserData() {
+            if (!currentUser) return;
+
+            // Show loading state
+            document.getElementById('walletAddress').textContent = 'Loading...';
+            document.getElementById('qrAddress').textContent = 'Loading...';
+            document.getElementById('totalBalance').textContent = '$0.00';
+            document.getElementById('dmBalanceInfo').textContent = 'Your DM balance: 0 DM ($0.00)';
+            
+            // Listen for user data changes
+            database.ref('users/' + currentUser.uid).on('value', (snapshot) => {
+                userData = snapshot.val();
+                if (userData) {
+                    updateUIWithUserData();
+                } else {
+                    // Initialize user data if it doesn't exist
+                    initializeUserData();
+                }
+            });
+        }
+
+        // Initialize user data in Firebase
+        function initializeUserData() {
+            if (!currentUser) return;
+
+            const walletAddress = generateWalletAddress();
+            const initialData = {
+                name: currentUser.displayName || 'User',
+                email: currentUser.email,
+                walletAddress: walletAddress,
+                balance: 0,
+                assets: {
+                    dm: { amount: 0, value: 0 },
+                    solana: { amount: 0, value: 0 },
+                    usdt: { amount: 0, value: 0 }
+                },
+                transactions: []
+            };
+
+            database.ref('users/' + currentUser.uid).set(initialData)
+                .then(() => {
+                    console.log('User data initialized');
+                })
+                .catch((error) => {
+                    console.error('Error initializing user data:', error);
+                });
+        }
+
+        // Update UI with user data
+        function updateUIWithUserData() {
+            if (!userData) return;
+
+            // Update wallet address
+            document.getElementById('walletAddress').textContent = userData.walletAddress;
+            document.getElementById('qrAddress').textContent = userData.walletAddress;
+            
+            // Update profile info
+            profileName.textContent = userData.name;
+            profileEmail.textContent = userData.email;
+            profileWallet.textContent = userData.walletAddress;
+
+            // Update balance
+            const totalBalance = calculateTotalBalance();
+            document.getElementById('totalBalance').textContent = `$${totalBalance.toFixed(2)}`;
+            
+            // Update DM balance info
+            const dmAmount = userData.assets.dm.amount || 0;
+            const dmValue = userData.assets.dm.value || 0;
+            document.getElementById('dmBalanceInfo').textContent = `Your DM balance: ${dmAmount.toFixed(2)} DM ($${dmValue.toFixed(2)})`;
+            
+            // Update assets list
+            updateAssetsList();
+            
+            // Update transaction history
+            updateTransactionHistory();
+        }
+
+        // Calculate total balance from all assets
+        function calculateTotalBalance() {
+            if (!userData || !userData.assets) return 0;
+            
+            let total = 0;
+            for (const asset in userData.assets) {
+                total += userData.assets[asset].value || 0;
+            }
+            return total;
+        }
+
+        // Update assets list in the UI
+        function updateAssetsList() {
+            const assetsList = document.getElementById('assetsList');
+            assetsList.innerHTML = '';
+            
+            if (!userData || !userData.assets) return;
+            
+            // DM Coin
+            if (userData.assets.dm) {
+                const dmItem = createAssetItem('dm', 'DM Coin', userData.assets.dm.amount, userData.assets.dm.value);
+                assetsList.appendChild(dmItem);
+            }
+            
+            // Solana
+            if (userData.assets.solana) {
+                const solanaItem = createAssetItem('solana', 'Solana', userData.assets.solana.amount, userData.assets.solana.value);
+                assetsList.appendChild(solanaItem);
+            }
+            
+            // USDT
+            if (userData.assets.usdt) {
+                const usdtItem = createAssetItem('usdt', 'Tether', userData.assets.usdt.amount, userData.assets.usdt.value);
+                assetsList.appendChild(usdtItem);
+            }
+        }
+
+        // Create an asset item for the assets list
+        function createAssetItem(type, name, amount, value) {
+            const assetItem = document.createElement('div');
+            assetItem.className = 'asset-item';
+            
+            let iconClass = '';
+            let iconText = '';
+            
+            switch(type) {
+                case 'dm':
+                    iconClass = 'dm-coin';
+                    iconText = 'DM';
+                    break;
+                case 'solana':
+                    iconClass = 'solana';
+                    iconText = 'SOL';
+                    break;
+                case 'usdt':
+                    iconClass = 'usdt';
+                    iconText = 'USDT';
+                    break;
+            }
+            
+            assetItem.innerHTML = `
+                <div class="asset-icon ${iconClass}">
+                    ${iconText}
+                </div>
+                <div class="asset-details">
+                    <div class="asset-name">
+                        <span>${name}</span>
+                        <span class="asset-amount">${amount ? amount.toFixed(2) : '0.00'} ${iconText}</span>
+                    </div>
+                    <div class="asset-value">
+                        <span>$${value ? value.toFixed(2) : '0.00'}</span>
+                        <span class="positive">+0.0%</span>
+                    </div>
+                </div>
+            `;
+            
+            return assetItem;
+        }
+
+        // Update transaction history in the UI
+        function updateTransactionHistory() {
+            const transactionList = document.getElementById('transactionList');
+            transactionList.innerHTML = '';
+            
+            if (!userData || !userData.transactions || userData.transactions.length === 0) {
+                transactionList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No transactions yet</p>';
+                return;
+            }
+            
+            // Sort transactions by timestamp (newest first)
+            const sortedTransactions = [...userData.transactions].sort((a, b) => 
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+            
+            // Display only the 5 most recent transactions
+            const recentTransactions = sortedTransactions.slice(0, 5);
+            
+            recentTransactions.forEach(transaction => {
+                const transactionItem = createTransactionItem(transaction);
+                transactionList.appendChild(transactionItem);
+            });
+        }
+
+        // Create a transaction item for the transaction history
+        function createTransactionItem(transaction) {
+            const transactionItem = document.createElement('div');
+            transactionItem.className = 'transaction-item';
+            
+            let iconClass = '';
+            let icon = '';
+            let amountClass = '';
+            
+            switch(transaction.type) {
+                case 'receive':
+                    iconClass = 'positive';
+                    icon = 'fa-arrow-down';
+                    amountClass = 'positive';
+                    break;
+                case 'send':
+                    iconClass = 'negative';
+                    icon = 'fa-arrow-up';
+                    amountClass = 'negative';
+                    break;
+                case 'swap':
+                    iconClass = '';
+                    icon = 'fa-exchange-alt';
+                    amountClass = '';
+                    break;
+            }
+            
+            const amountPrefix = transaction.type === 'send' ? '-' : '+';
+            const formattedDate = formatTransactionDate(transaction.timestamp);
+            
+            transactionItem.innerHTML = `
+                <div class="transaction-icon">
+                    <i class="fas ${icon}"></i>
+                </div>
+                <div class="transaction-details">
+                    <div class="transaction-title">
+                        <span>${transaction.description}</span>
+                        <span class="transaction-amount ${amountClass}">${amountPrefix}${transaction.amount} ${transaction.token}</span>
+                    </div>
+                    <div class="transaction-info">
+                        <span>${transaction.details}</span>
+                        <span>${formattedDate}</span>
+                    </div>
+                </div>
+            `;
+            
+            return transactionItem;
+        }
+
+        // Format transaction date for display
+        function formatTransactionDate(timestamp) {
+            const now = new Date();
+            const transactionDate = new Date(timestamp);
+            const diffMs = now - transactionDate;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) {
+                return 'Just now';
+            } else if (diffMins < 60) {
+                return `${diffMins} minutes ago`;
+            } else if (diffHours < 24) {
+                return `${diffHours} hours ago`;
+            } else if (diffDays < 7) {
+                return `${diffDays} days ago`;
+            } else {
+                return transactionDate.toLocaleDateString();
+            }
+        }
+
+        // Generate a random wallet address
+        function generateWalletAddress() {
+            const chars = '0123456789abcdef';
+            let address = '0x';
+            for (let i = 0; i < 40; i++) {
+                address += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return address;
+        }
+
+        // Add a transaction to user's history
+        function addTransaction(transaction) {
+            if (!currentUser || !userData) return;
+            
+            const transactions = userData.transactions || [];
+            transactions.push({
+                ...transaction,
+                timestamp: new Date().toISOString()
+            });
+            
+            database.ref('users/' + currentUser.uid + '/transactions').set(transactions)
+                .catch((error) => {
+                    console.error('Error adding transaction:', error);
+                });
+        }
+
+        // Update user assets in Firebase
+        function updateAssets(assets) {
+            if (!currentUser) return;
+            
+            database.ref('users/' + currentUser.uid + '/assets').update(assets)
+                .catch((error) => {
+                    console.error('Error updating assets:', error);
+                });
+        }
+
+        // Authentication event handlers
+        showRegister.addEventListener('click', () => {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+            authError.style.display = 'none';
+        });
+
+        showLogin.addEventListener('click', () => {
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'block';
+            authError.style.display = 'none';
+        });
+
+        loginButton.addEventListener('click', () => {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showAuthError('Please enter both email and password');
+                return;
+            }
+            
+            authSpinner.style.display = 'block';
+            loginButton.disabled = true;
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed in successfully
+                    authSpinner.style.display = 'none';
+                    loginButton.disabled = false;
+                })
+                .catch((error) => {
+                    authSpinner.style.display = 'none';
+                    loginButton.disabled = false;
+                    showAuthError(error.message);
+                });
+        });
+
+        registerButton.addEventListener('click', () => {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            if (!name || !email || !password) {
+                showAuthError('Please fill in all fields');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showAuthError('Password should be at least 6 characters');
+                return;
+            }
+            
+            authSpinner.style.display = 'block';
+            registerButton.disabled = true;
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Update user profile with name
+                    return userCredential.user.updateProfile({
+                        displayName: name
+                    });
+                })
+                .then(() => {
+                    authSpinner.style.display = 'none';
+                    registerButton.disabled = false;
+                })
+                .catch((error) => {
+                    authSpinner.style.display = 'none';
+                    registerButton.disabled = false;
+                    showAuthError(error.message);
+                });
+        });
+
+        logoutButton.addEventListener('click', () => {
+            auth.signOut();
+        });
+
+        userProfile.addEventListener('click', () => {
+            profileModal.style.display = 'flex';
+        });
+
+        closeProfileModal.addEventListener('click', () => {
+            profileModal.style.display = 'none';
+        });
+
+        // Show authentication error
+        function showAuthError(message) {
+            authError.textContent = message;
+            authError.style.display = 'block';
+        }
+
         // Navigation functionality
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function() {
@@ -1147,12 +1638,33 @@
         document.getElementById('confirmSend').addEventListener('click', function() {
             const token = document.getElementById('tokenSelect').value;
             const address = document.getElementById('recipientAddress').value;
-            const amount = document.getElementById('sendAmount').value;
+            const amount = parseFloat(document.getElementById('sendAmount').value);
             
-            if (!address || !amount) {
-                alert('Please fill in all fields');
+            if (!address || !amount || amount <= 0) {
+                alert('Please fill in all fields with valid values');
                 return;
             }
+            
+            // Check if user has enough balance
+            if (!userData || !userData.assets[token] || userData.assets[token].amount < amount) {
+                alert(`Insufficient ${token.toUpperCase()} balance`);
+                return;
+            }
+            
+            // Update assets in Firebase
+            const updatedAssets = { ...userData.assets };
+            updatedAssets[token].amount -= amount;
+            // For simplicity, we're not calculating the value change here
+            updateAssets(updatedAssets);
+            
+            // Add transaction to history
+            addTransaction({
+                type: 'send',
+                token: token.toUpperCase(),
+                amount: amount,
+                description: `Sent ${token.toUpperCase()}`,
+                details: `To: ${address.substring(0, 10)}...${address.substring(address.length - 10)}`
+            });
             
             alert(`Sent ${amount} ${token.toUpperCase()} to ${address}`);
             document.getElementById('sendModal').style.display = 'none';
@@ -1166,13 +1678,35 @@
         document.getElementById('confirmSwap').addEventListener('click', function() {
             const fromToken = document.getElementById('swapFromToken').value;
             const toToken = document.getElementById('swapToToken').value;
-            const fromAmount = document.getElementById('swapFromAmount').value;
-            const toAmount = document.getElementById('swapToAmount').value;
+            const fromAmount = parseFloat(document.getElementById('swapFromAmount').value);
+            const toAmount = parseFloat(document.getElementById('swapToAmount').value);
             
             if (!fromAmount || fromAmount <= 0) {
                 alert('Please enter a valid amount to swap');
                 return;
             }
+            
+            // Check if user has enough balance
+            if (!userData || !userData.assets[fromToken] || userData.assets[fromToken].amount < fromAmount) {
+                alert(`Insufficient ${fromToken.toUpperCase()} balance`);
+                return;
+            }
+            
+            // Update assets in Firebase
+            const updatedAssets = { ...userData.assets };
+            updatedAssets[fromToken].amount -= fromAmount;
+            updatedAssets[toToken].amount += toAmount;
+            // For simplicity, we're not calculating the value change here
+            updateAssets(updatedAssets);
+            
+            // Add transaction to history
+            addTransaction({
+                type: 'swap',
+                token: fromToken.toUpperCase(),
+                amount: fromAmount,
+                description: `Swapped ${fromToken.toUpperCase()} to ${toToken.toUpperCase()}`,
+                details: `DragonSwap`
+            });
             
             alert(`Swapped ${fromAmount} ${fromToken.toUpperCase()} to ${toAmount} ${toToken.toUpperCase()}`);
             
@@ -1239,21 +1773,36 @@
 
         // Simulate real-time price updates
         function updatePrices() {
+            if (!userData || !userData.assets) return;
+            
             // Simulate price fluctuations
             const dmChange = (Math.random() - 0.5) * 4;
             const solanaChange = (Math.random() - 0.5) * 3;
+            const usdtChange = (Math.random() - 0.1) * 0.5;
             
             // Update DM Coin price (fixed at $2 base)
-            const dmPriceElement = document.getElementById('dm-price');
-            const dmCurrentPrice = parseFloat(dmPriceElement.textContent.replace('$', '').replace(',', ''));
-            const newDmPrice = dmCurrentPrice * (1 + dmChange / 100);
-            dmPriceElement.textContent = `$${newDmPrice.toFixed(2)}`;
+            const dmPrice = 2 * (1 + dmChange / 100);
+            const dmAmount = userData.assets.dm.amount || 0;
+            const dmValue = dmAmount * dmPrice;
             
             // Update Solana price
-            const solanaPriceElement = document.getElementById('solana-price');
-            const solanaCurrentPrice = parseFloat(solanaPriceElement.textContent.replace('$', '').replace(',', ''));
-            const newSolanaPrice = solanaCurrentPrice * (1 + solanaChange / 100);
-            solanaPriceElement.textContent = `$${newSolanaPrice.toFixed(2)}`;
+            const solanaPrice = 100 * (1 + solanaChange / 100);
+            const solanaAmount = userData.assets.solana.amount || 0;
+            const solanaValue = solanaAmount * solanaPrice;
+            
+            // Update USDT price (should be stable around $1)
+            const usdtPrice = 1 * (1 + usdtChange / 100);
+            const usdtAmount = userData.assets.usdt.amount || 0;
+            const usdtValue = usdtAmount * usdtPrice;
+            
+            // Update assets in Firebase
+            const updatedAssets = {
+                dm: { amount: dmAmount, value: dmValue },
+                solana: { amount: solanaAmount, value: solanaValue },
+                usdt: { amount: usdtAmount, value: usdtValue }
+            };
+            
+            updateAssets(updatedAssets);
         }
 
         // Update prices every 10 seconds
@@ -1263,18 +1812,83 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Add subtle animation to balance card
             const balanceCard = document.querySelector('.balance-card');
-            balanceCard.style.transform = 'translateY(20px)';
-            balanceCard.style.opacity = '0';
-            
-            setTimeout(() => {
-                balanceCard.style.transition = 'all 0.5s ease';
-                balanceCard.style.transform = 'translateY(0)';
-                balanceCard.style.opacity = '1';
-            }, 300);
+            if (balanceCard) {
+                balanceCard.style.transform = 'translateY(20px)';
+                balanceCard.style.opacity = '0';
+                
+                setTimeout(() => {
+                    balanceCard.style.transition = 'all 0.5s ease';
+                    balanceCard.style.transform = 'translateY(0)';
+                    balanceCard.style.opacity = '1';
+                }, 300);
+            }
         });
 
         // Initialize swap rates
         updateSwapRate();
+
+        // Add some demo data for new users
+        function addDemoData() {
+            if (!currentUser || !userData) return;
+            
+            // Only add demo data if user has no transactions
+            if (!userData.transactions || userData.transactions.length === 0) {
+                const demoAssets = {
+                    dm: { amount: 1250.75, value: 2501.50 },
+                    solana: { amount: 12.5, value: 1245.80 },
+                    usdt: { amount: 520.45, value: 520.45 }
+                };
+                
+                const demoTransactions = [
+                    {
+                        type: 'receive',
+                        token: 'DM',
+                        amount: 250,
+                        description: 'Received DM Coin',
+                        details: 'From: 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b',
+                        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
+                    },
+                    {
+                        type: 'send',
+                        token: 'SOL',
+                        amount: 2.5,
+                        description: 'Sent Solana',
+                        details: 'To: 5vDjK6EitHjY7yL9X2n2L2W2n2L2W2n2L2W2n2L2W2n2L',
+                        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+                    },
+                    {
+                        type: 'swap',
+                        token: 'SOL',
+                        amount: 5,
+                        description: 'Swapped SOL to DM',
+                        details: 'DragonSwap',
+                        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days ago
+                    }
+                ];
+                
+                // Update assets
+                updateAssets(demoAssets);
+                
+                // Add transactions
+                database.ref('users/' + currentUser.uid + '/transactions').set(demoTransactions)
+                    .catch((error) => {
+                        console.error('Error adding demo transactions:', error);
+                    });
+            }
+        }
+
+        // Call addDemoData when user data is loaded
+        // This is a simple way to detect first-time users
+        const originalLoadUserData = loadUserData;
+        loadUserData = function() {
+            originalLoadUserData();
+            // Check if we need to add demo data after a short delay
+            setTimeout(() => {
+                if (currentUser && userData && (!userData.transactions || userData.transactions.length === 0)) {
+                    addDemoData();
+                }
+            }, 1000);
+        };
     </script>
 </body>
 </html>
