@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragon Wallet - Secure Crypto Wallet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #d43f3f;
+            --secondary: #1c1c1e;
+            --accent: #4cd964;
+            --text: #ffffff;
+            --text-secondary: #8e8e93;
+            --card-bg: #2c2c2e;
+            --bg: #000000;
+            --dragon-red: #d43f3f;
+            --dragon-dark: #2a0f0f;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 400px;
+            margin: 0 auto;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Header Styles */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: var(--dragon-dark);
+            border-bottom: 1px solid #d43f3f;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            font-size: 18px;
+            color: var(--dragon-red);
+        }
+
+        .logo i {
+            color: var(--dragon-red);
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-icons i {
+            font-size: 18px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, var(--dragon-red), #e27272);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(212, 63, 63, 0.3);
+        }
+
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .balance-amount {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .balance-change {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        .positive {
+            color: var(--accent);
+        }
+
+        .negative {
+            color: #ff3b30;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 25px 0;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px 10px;
+            width: 23%;
+            transition: all 0.2s;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+            background-color: #3a3a3c;
+        }
+
+        .action-btn i {
+            font-size: 22px;
+            background-color: var(--dragon-red);
+            padding: 10px;
+            border-radius: 50%;
+        }
+
+        .action-btn span {
+            font-size: 12px;
+        }
+
+        /* Address Section */
+        .address-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .address-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .address-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .copy-btn {
+            background-color: var(--dragon-red);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .address-value {
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        /* Assets Section */
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .assets-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .asset-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            background-color: var(--card-bg);
+        }
+
+        .asset-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .btc {
+            background-color: #f7931a;
+        }
+
+        .dragon {
+            background-color: var(--dragon-red);
+        }
+
+        .eth {
+            background-color: #627eea;
+        }
+
+        .bnb {
+            background-color: #f3ba2f;
+            color: #000;
+        }
+
+        .usdt {
+            background-color: #26a17b;
+        }
+
+        .asset-details {
+            flex: 1;
+        }
+
+        .asset-name {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .asset-amount {
+            font-weight: 600;
+        }
+
+        .asset-value {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--dragon-dark);
+            padding: 15px 0;
+            border-top: 1px solid #d43f3f;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .nav-item.active {
+            opacity: 1;
+            color: var(--dragon-red);
+        }
+
+        .nav-item i {
+            font-size: 20px;
+        }
+
+        /* Transaction History */
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--dragon-red);
+        }
+
+        .transaction-details {
+            flex: 1;
+        }
+
+        .transaction-title {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+        }
+
+        .transaction-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Hidden sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Dragon Coin Special Section */
+        .dragon-coin-highlight {
+            background: linear-gradient(135deg, var(--dragon-dark), #5a1c1c);
+            border: 1px solid var(--dragon-red);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .dragon-coin-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--dragon-red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .dragon-coin-info h3 {
+            color: var(--dragon-red);
+            margin-bottom: 5px;
+        }
+
+        .dragon-coin-info p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-dragon"></i>
+                <span>Dragon Wallet</span>
+            </div>
+            <div class="header-icons">
+                <i class="fas fa-qrcode"></i>
+                <i class="fas fa-cog"></i>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Wallet Section -->
+            <div id="wallet" class="section active">
+                <div class="balance-card">
+                    <div class="balance-label">Total Balance</div>
+                    <div class="balance-amount">$8,742.65</div>
+                    <div class="balance-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+12.4%</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <div class="action-btn">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>Receive</span>
+                    </div>
+                    <div class="action-btn">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Send</span>
+                    </div>
+                    <div class="action-btn">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>Swap</span>
+                    </div>
+                    <div class="action-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Buy</span>
+                    </div>
+                </div>
+
+                <!-- Address Section -->
+                <div class="address-section">
+                    <div class="address-header">
+                        <div class="address-title">Your Wallet Address</div>
+                        <button class="copy-btn" id="copyAddress">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <div class="address-value" id="walletAddress">
+                        0x7a4b5c6d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3
+                    </div>
+                </div>
+
+                <!-- Dragon Coin Highlight -->
+                <div class="dragon-coin-highlight">
+                    <div class="dragon-coin-icon">
+                        <i class="fas fa-dragon"></i>
+                    </div>
+                    <div class="dragon-coin-info">
+                        <h3>Dragon Coin (DRGN)</h3>
+                        <p>Your DRGN balance: 1,250.75 DRGN ($3,245.80)</p>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <span>Your Assets</span>
+                    <span>Manage</span>
+                </div>
+
+                <div class="assets-list">
+                    <div class="asset-item">
+                        <div class="asset-icon dragon">
+                            <i class="fas fa-dragon"></i>
+                        </div>
+                        <div class="asset-details">
+                            <div class="asset-name">
+                                <span>Dragon Coin</span>
+                                <span class="asset-amount">1,250.75 DRGN</span>
+                            </div>
+                            <div class="asset-value">
+                                <span>$3,245.80</span>
+                                <span class="positive">+12.4%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="asset-item">
+                        <div class="asset-icon btc">
+                            <i class="fab fa-bitcoin"></i>
+                        </div>
+                        <div class="asset-details">
+                            <div class="asset-name">
+                                <span>Bitcoin</span>
+                                <span class="asset-amount">0.1256 BTC</span>
+                            </div>
+                            <div class="asset-value">
+                                <span>$3,245.80</span>
+                                <span class="positive">+2.4%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="asset-item">
+                        <div class="asset-icon eth">
+                            <i class="fab fa-ethereum"></i>
+                        </div>
+                        <div class="asset-details">
+                            <div class="asset-name">
+                                <span>Ethereum</span>
+                                <span class="asset-amount">2.45 ETH</span>
+                            </div>
+                            <div class="asset-value">
+                                <span>$782.50</span>
+                                <span class="positive">+1.2%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="asset-item">
+                        <div class="asset-icon bnb">
+                            <span>BNB</span>
+                        </div>
+                        <div class="asset-details">
+                            <div class="asset-name">
+                                <span>BNB</span>
+                                <span class="asset-amount">15.2 BNB</span>
+                            </div>
+                            <div class="asset-value">
+                                <span>$4,120.75</span>
+                                <span class="negative">-0.8%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DApps Section -->
+            <div id="dapps" class="section">
+                <div class="section-title">
+                    <span>DApps Browser</span>
+                </div>
+                <p style="text-align: center; margin-top: 40px; color: var(--text-secondary);">
+                    Browse decentralized applications securely
+                </p>
+            </div>
+
+            <!-- Swap Section -->
+            <div id="swap" class="section">
+                <div class="section-title">
+                    <span>Swap Tokens</span>
+                </div>
+                <p style="text-align: center; margin-top: 40px; color: var(--text-secondary);">
+                    Exchange tokens instantly
+                </p>
+            </div>
+
+            <!-- History Section -->
+            <div id="history" class="section">
+                <div class="section-title">
+                    <span>Transaction History</span>
+                </div>
+
+                <div class="transaction-list">
+                    <div class="transaction-item">
+                        <div class="transaction-icon">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <div class="transaction-title">
+                                <span>Received Dragon Coin</span>
+                                <span class="transaction-amount positive">+250 DRGN</span>
+                            </div>
+                            <div class="transaction-info">
+                                <span>From: 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b</span>
+                                <span>2 hours ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="transaction-item">
+                        <div class="transaction-icon">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <div class="transaction-title">
+                                <span>Sent Bitcoin</span>
+                                <span class="transaction-amount negative">-0.025 BTC</span>
+                            </div>
+                            <div class="transaction-info">
+                                <span>To: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</span>
+                                <span>1 day ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="transaction-item">
+                        <div class="transaction-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <div class="transaction-title">
+                                <span>Swapped ETH to DRGN</span>
+                                <span class="transaction-amount">+500 DRGN</span>
+                            </div>
+                            <div class="transaction-info">
+                                <span>DragonSwap</span>
+                                <span>3 days ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" data-target="wallet">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </div>
+            <div class="nav-item" data-target="dapps">
+                <i class="fas fa-compass"></i>
+                <span>Browser</span>
+            </div>
+            <div class="nav-item" data-target="swap">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Swap</span>
+            </div>
+            <div class="nav-item" data-target="history">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation functionality
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Remove active class from all nav items
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('active');
+                });
+                
+                // Add active class to clicked nav item
+                this.classList.add('active');
+                
+                // Hide all sections
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Show the target section
+                const targetId = this.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        // Copy address functionality
+        document.getElementById('copyAddress').addEventListener('click', function() {
+            const address = document.getElementById('walletAddress').textContent;
+            navigator.clipboard.writeText(address).then(() => {
+                // Show feedback
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                }, 2000);
+            });
+        });
+
+        // Simulate loading animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add subtle animation to balance card
+            const balanceCard = document.querySelector('.balance-card');
+            balanceCard.style.transform = 'translateY(20px)';
+            balanceCard.style.opacity = '0';
+            
+            setTimeout(() => {
+                balanceCard.style.transition = 'all 0.5s ease';
+                balanceCard.style.transform = 'translateY(0)';
+                balanceCard.style.opacity = '1';
+            }, 300);
+        });
+    </script>
+</body>
+</html>
