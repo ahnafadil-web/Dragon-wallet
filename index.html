@@ -27,6 +27,7 @@
             --gradient-end: #5aa5ff;
             --solana-purple: #9945FF;
             --solana-green: #14F195;
+            --dm-coin: #00d4aa;
         }
 
         body {
@@ -239,8 +240,8 @@
             font-weight: bold;
         }
 
-        .dragon {
-            background-color: var(--dragon-blue);
+        .dm-coin {
+            background-color: var(--dm-coin);
         }
 
         .solana {
@@ -355,10 +356,10 @@
             display: block;
         }
 
-        /* Dragon Coin Special Section */
-        .dragon-coin-highlight {
-            background: linear-gradient(135deg, var(--dragon-dark), #1a2f4f);
-            border: 1px solid var(--dragon-blue);
+        /* DM Coin Special Section */
+        .dm-coin-highlight {
+            background: linear-gradient(135deg, #0f2f2a, #1a4f4f);
+            border: 1px solid var(--dm-coin);
             border-radius: 12px;
             padding: 15px;
             margin: 15px 0;
@@ -367,23 +368,25 @@
             gap: 15px;
         }
 
-        .dragon-coin-icon {
+        .dm-coin-icon {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background-color: var(--dragon-blue);
+            background-color: var(--dm-coin);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
+            color: white;
+            font-weight: bold;
         }
 
-        .dragon-coin-info h3 {
-            color: var(--dragon-blue);
+        .dm-coin-info h3 {
+            color: var(--dm-coin);
             margin-bottom: 5px;
         }
 
-        .dragon-coin-info p {
+        .dm-coin-info p {
             font-size: 14px;
             color: var(--text-secondary);
         }
@@ -726,10 +729,10 @@
             <div id="wallet" class="section active">
                 <div class="balance-card">
                     <div class="balance-label">Total Balance</div>
-                    <div class="balance-amount">$8,742.65</div>
+                    <div class="balance-amount">$5,017.25</div>
                     <div class="balance-change positive">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+12.4%</span>
+                        <span>+8.2%</span>
                     </div>
                 </div>
 
@@ -765,14 +768,14 @@
                     </div>
                 </div>
 
-                <!-- Dragon Coin Highlight -->
-                <div class="dragon-coin-highlight">
-                    <div class="dragon-coin-icon">
-                        <i class="fas fa-dragon"></i>
+                <!-- DM Coin Highlight -->
+                <div class="dm-coin-highlight">
+                    <div class="dm-coin-icon">
+                        DM
                     </div>
-                    <div class="dragon-coin-info">
-                        <h3>Dragon Coin (DRGN)</h3>
-                        <p>Your DRGN balance: 1,250.75 DRGN ($3,245.80)</p>
+                    <div class="dm-coin-info">
+                        <h3>DM Coin (DM)</h3>
+                        <p>Your DM balance: 1,250.75 DM ($2,501.50)</p>
                     </div>
                 </div>
 
@@ -783,17 +786,17 @@
 
                 <div class="assets-list">
                     <div class="asset-item">
-                        <div class="asset-icon dragon">
-                            <i class="fas fa-dragon"></i>
+                        <div class="asset-icon dm-coin">
+                            DM
                         </div>
                         <div class="asset-details">
                             <div class="asset-name">
-                                <span>Dragon Coin</span>
-                                <span class="asset-amount">1,250.75 DRGN</span>
+                                <span>DM Coin</span>
+                                <span class="asset-amount">1,250.75 DM</span>
                             </div>
                             <div class="asset-value">
-                                <span id="dragon-price">$3,245.80</span>
-                                <span class="positive">+12.4%</span>
+                                <span id="dm-price">$2,501.50</span>
+                                <span class="positive">+8.2%</span>
                             </div>
                         </div>
                     </div>
@@ -869,31 +872,31 @@
                                     <div class="dapp-icon">
                                         <i class="fas fa-coins"></i>
                                     </div>
-                                    <div class="dapp-name">DragonFarm</div>
+                                    <div class="dapp-name">DM Farm</div>
                                 </div>
                                 <div class="dapp-item">
                                     <div class="dapp-icon">
                                         <i class="fas fa-gamepad"></i>
                                     </div>
-                                    <div class="dapp-name">DragonGames</div>
+                                    <div class="dapp-name">DM Games</div>
                                 </div>
                                 <div class="dapp-item">
                                     <div class="dapp-icon">
                                         <i class="fas fa-landmark"></i>
                                     </div>
-                                    <div class="dapp-name">DragonBank</div>
+                                    <div class="dapp-name">DM Bank</div>
                                 </div>
                                 <div class="dapp-item">
                                     <div class="dapp-icon">
                                         <i class="fas fa-chart-line"></i>
                                     </div>
-                                    <div class="dapp-name">DragonChart</div>
+                                    <div class="dapp-name">DM Chart</div>
                                 </div>
                                 <div class="dapp-item">
                                     <div class="dapp-icon">
                                         <i class="fas fa-gem"></i>
                                     </div>
-                                    <div class="dapp-name">DragonNFT</div>
+                                    <div class="dapp-name">DM NFT</div>
                                 </div>
                             </div>
                         </div>
@@ -915,7 +918,7 @@
                         <div class="swap-input">
                             <input type="number" placeholder="0.0" id="swapFromAmount">
                             <select class="token-selector" id="swapFromToken">
-                                <option value="dragon">DRGN</option>
+                                <option value="dm">DM</option>
                                 <option value="solana">SOL</option>
                                 <option value="usdt">USDT</option>
                             </select>
@@ -929,14 +932,14 @@
                             <input type="number" placeholder="0.0" id="swapToAmount">
                             <select class="token-selector" id="swapToToken">
                                 <option value="solana">SOL</option>
-                                <option value="dragon">DRGN</option>
+                                <option value="dm">DM</option>
                                 <option value="usdt">USDT</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="swap-rate" id="swapRate">
-                        1 DRGN = 0.25 SOL
+                        1 DM = 0.5 SOL
                     </div>
 
                     <button class="swap-button" id="confirmSwap">Swap</button>
@@ -956,8 +959,8 @@
                         </div>
                         <div class="transaction-details">
                             <div class="transaction-title">
-                                <span>Received Dragon Coin</span>
-                                <span class="transaction-amount positive">+250 DRGN</span>
+                                <span>Received DM Coin</span>
+                                <span class="transaction-amount positive">+250 DM</span>
                             </div>
                             <div class="transaction-info">
                                 <span>From: 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b</span>
@@ -988,8 +991,8 @@
                         </div>
                         <div class="transaction-details">
                             <div class="transaction-title">
-                                <span>Swapped SOL to DRGN</span>
-                                <span class="transaction-amount">+500 DRGN</span>
+                                <span>Swapped SOL to DM</span>
+                                <span class="transaction-amount">+500 DM</span>
                             </div>
                             <div class="transaction-info">
                                 <span>DragonSwap</span>
@@ -1043,7 +1046,7 @@
                     <div class="form-group">
                         <label for="tokenSelect">Select Token</label>
                         <select class="token-selector" id="tokenSelect">
-                            <option value="dragon">Dragon Coin (DRGN)</option>
+                            <option value="dm">DM Coin (DM)</option>
                             <option value="solana">Solana (SOL)</option>
                             <option value="usdt">Tether (USDT)</option>
                         </select>
@@ -1183,13 +1186,13 @@
             const fromToken = document.getElementById('swapFromToken').value;
             const toToken = document.getElementById('swapToToken').value;
             
-            // Simulated exchange rates
+            // Simulated exchange rates (DM Coin at $2)
             const rates = {
-                'dragon-solana': '1 DRGN = 0.25 SOL',
-                'dragon-usdt': '1 DRGN = 2.5 USDT',
-                'solana-dragon': '1 SOL = 4 DRGN',
+                'dm-solana': '1 DM = 0.5 SOL',
+                'dm-usdt': '1 DM = 2 USDT',
+                'solana-dm': '1 SOL = 2 DM',
                 'solana-usdt': '1 SOL = 100 USDT',
-                'usdt-dragon': '1 USDT = 0.4 DRGN',
+                'usdt-dm': '1 USDT = 0.5 DM',
                 'usdt-solana': '1 USDT = 0.01 SOL'
             };
             
@@ -1206,13 +1209,13 @@
             const toToken = document.getElementById('swapToToken').value;
             const fromAmount = parseFloat(this.value) || 0;
             
-            // Simulated conversion rates
+            // Simulated conversion rates (DM Coin at $2)
             const conversionRates = {
-                'dragon-solana': 0.25,
-                'dragon-usdt': 2.5,
-                'solana-dragon': 4,
+                'dm-solana': 0.5,
+                'dm-usdt': 2,
+                'solana-dm': 2,
                 'solana-usdt': 100,
-                'usdt-dragon': 0.4,
+                'usdt-dm': 0.5,
                 'usdt-solana': 0.01
             };
             
@@ -1237,14 +1240,14 @@
         // Simulate real-time price updates
         function updatePrices() {
             // Simulate price fluctuations
-            const dragonChange = (Math.random() - 0.5) * 4;
+            const dmChange = (Math.random() - 0.5) * 4;
             const solanaChange = (Math.random() - 0.5) * 3;
             
-            // Update Dragon Coin price
-            const dragonPriceElement = document.getElementById('dragon-price');
-            const dragonCurrentPrice = parseFloat(dragonPriceElement.textContent.replace('$', '').replace(',', ''));
-            const newDragonPrice = dragonCurrentPrice * (1 + dragonChange / 100);
-            dragonPriceElement.textContent = `$${newDragonPrice.toFixed(2)}`;
+            // Update DM Coin price (fixed at $2 base)
+            const dmPriceElement = document.getElementById('dm-price');
+            const dmCurrentPrice = parseFloat(dmPriceElement.textContent.replace('$', '').replace(',', ''));
+            const newDmPrice = dmCurrentPrice * (1 + dmChange / 100);
+            dmPriceElement.textContent = `$${newDmPrice.toFixed(2)}`;
             
             // Update Solana price
             const solanaPriceElement = document.getElementById('solana-price');
@@ -1269,6 +1272,9 @@
                 balanceCard.style.opacity = '1';
             }, 300);
         });
+
+        // Initialize swap rates
+        updateSwapRate();
     </script>
 </body>
 </html>
