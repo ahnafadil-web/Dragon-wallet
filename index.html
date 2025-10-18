@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dragon Wallet - Secure Crypto Wallet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -806,6 +807,102 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Chart Section Styles */
+        .chart-section {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .chart-selector {
+            background-color: var(--dragon-blue);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .chart-container {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--dragon-blue);
+        }
+
+        .chart-price-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .chart-price {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .chart-change {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .chart-frame {
+            width: 100%;
+            height: 300px;
+            border: none;
+            border-radius: 8px;
+            background-color: white;
+        }
+
+        .chart-iframe-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            height: 300px;
+        }
+
+        .chart-iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .chart-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+            color: var(--text-secondary);
+        }
+
+        /* Chart.js canvas styling */
+        .chart-canvas-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .chart-canvas-container canvas {
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -874,9 +971,9 @@
                         <i class="fas fa-exchange-alt"></i>
                         <span>Swap</span>
                     </div>
-                    <div class="action-btn">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span>Buy</span>
+                    <div class="action-btn" id="chartBtn">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Chart</span>
                     </div>
                 </div>
 
@@ -1025,6 +1122,32 @@
                 </div>
             </div>
 
+            <!-- Chart Section -->
+            <div id="chart" class="section">
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <div class="chart-title">Market Charts</div>
+                        <select class="chart-selector" id="chartPair">
+                            <option value="SOLUSDC">SOL/USDC</option>
+                            <option value="DMSOL">DM/SOL</option>
+                        </select>
+                    </div>
+
+                    <div class="chart-container">
+                        <div class="chart-price-info">
+                            <div class="chart-price" id="currentPrice">Loading...</div>
+                            <div class="chart-change positive" id="priceChange">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+0.0%</span>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-container">
+                            <canvas id="priceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- History Section -->
             <div id="history" class="section">
                 <div class="section-title">
@@ -1050,6 +1173,10 @@
             <div class="nav-item" data-target="swap">
                 <i class="fas fa-exchange-alt"></i>
                 <span>Swap</span>
+            </div>
+            <div class="nav-item" data-target="chart">
+                <i class="fas fa-chart-line"></i>
+                <span>Chart</span>
             </div>
             <div class="nav-item" data-target="history">
                 <i class="fas fa-history"></i>
@@ -1156,6 +1283,28 @@
         const profileName = document.getElementById('profileName');
         const profileEmail = document.getElementById('profileEmail');
         const profileWallet = document.getElementById('profileWallet');
+        const chartBtn = document.getElementById('chartBtn');
+        const chartPair = document.getElementById('chartPair');
+        const currentPrice = document.getElementById('currentPrice');
+        const priceChange = document.getElementById('priceChange');
+        const priceChart = document.getElementById('priceChart');
+
+        // Chart variables
+        let chart = null;
+        let chartData = {
+            SOLUSDC: {
+                labels: [],
+                prices: [],
+                currentPrice: 0,
+                change: 0
+            },
+            DMSOL: {
+                labels: [],
+                prices: [],
+                currentPrice: 0,
+                change: 0
+            }
+        };
 
         // User data
         let currentUser = null;
@@ -1577,6 +1726,11 @@
                 // Show the target section
                 const targetId = this.getAttribute('data-target');
                 document.getElementById(targetId).classList.add('active');
+                
+                // If chart section is selected, load chart data
+                if (targetId === 'chart') {
+                    loadChartData();
+                }
             });
         });
 
@@ -1624,6 +1778,215 @@
             });
             document.getElementById('swap').classList.add('active');
         });
+
+        // Chart button functionality
+        chartBtn.addEventListener('click', function() {
+            // Navigate to chart section
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            document.querySelector('[data-target="chart"]').classList.add('active');
+            
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById('chart').classList.add('active');
+            
+            // Load chart data
+            loadChartData();
+        });
+
+        // Chart pair selector functionality
+        chartPair.addEventListener('change', function() {
+            loadChartData();
+        });
+
+        // Load chart data based on selected pair
+        function loadChartData() {
+            const selectedPair = chartPair.value;
+            
+            // Show loading state
+            currentPrice.textContent = 'Loading...';
+            
+            if (selectedPair === 'SOLUSDC') {
+                // Fetch SOL/USDC price from Binance API
+                fetch('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDC')
+                    .then(response => response.json())
+                    .then(data => {
+                        const price = parseFloat(data.price).toFixed(2);
+                        currentPrice.textContent = `$${price}`;
+                        
+                        // Simulate price change
+                        const changePercent = (Math.random() * 5).toFixed(2);
+                        const isPositive = Math.random() > 0.5;
+                        
+                        priceChange.className = `chart-change ${isPositive ? 'positive' : 'negative'}`;
+                        priceChange.innerHTML = `<i class="fas fa-arrow-${isPositive ? 'up' : 'down'}"></i> <span>${isPositive ? '+' : ''}${changePercent}%</span>`;
+                        
+                        // Update chart data
+                        updateChartData('SOLUSDC', price, changePercent, isPositive);
+                        renderChart('SOL/USDC');
+                    })
+                    .catch(error => {
+                        console.error('Error fetching price data:', error);
+                        currentPrice.textContent = 'Error loading price';
+                        // Fallback to simulated data
+                        const price = (Math.random() * 50 + 50).toFixed(2);
+                        currentPrice.textContent = `$${price}`;
+                        updateChartData('SOLUSDC', price, 0.5, true);
+                        renderChart('SOL/USDC');
+                    });
+            } else if (selectedPair === 'DMSOL') {
+                // For DM/SOL, use simulated data
+                const price = (Math.random() * 0.5 + 0.5).toFixed(4);
+                currentPrice.textContent = `${price} SOL`;
+                
+                // Simulate price change for DM/SOL
+                const changePercent = (Math.random() * 8).toFixed(2);
+                const isPositive = Math.random() > 0.5;
+                
+                priceChange.className = `chart-change ${isPositive ? 'positive' : 'negative'}`;
+                priceChange.innerHTML = `<i class="fas fa-arrow-${isPositive ? 'up' : 'down'}"></i> <span>${isPositive ? '+' : ''}${changePercent}%</span>`;
+                
+                // Update chart data
+                updateChartData('DMSOL', price, changePercent, isPositive);
+                renderChart('DM/SOL');
+            }
+        }
+
+        // Update chart data with new price information
+        function updateChartData(pair, price, changePercent, isPositive) {
+            const now = new Date();
+            const timeLabel = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            // Add new data point
+            chartData[pair].labels.push(timeLabel);
+            chartData[pair].prices.push(parseFloat(price));
+            
+            // Keep only the last 20 data points
+            if (chartData[pair].labels.length > 20) {
+                chartData[pair].labels.shift();
+                chartData[pair].prices.shift();
+            }
+            
+            // Update current price and change
+            chartData[pair].currentPrice = parseFloat(price);
+            chartData[pair].change = parseFloat(changePercent) * (isPositive ? 1 : -1);
+        }
+
+        // Render the chart using Chart.js
+        function renderChart(title) {
+            const selectedPair = chartPair.value;
+            const data = chartData[selectedPair];
+            
+            const ctx = priceChart.getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (chart) {
+                chart.destroy();
+            }
+            
+            // Create gradient for chart line
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(45, 140, 255, 0.6)');
+            gradient.addColorStop(1, 'rgba(45, 140, 255, 0.1)');
+            
+            // Determine line color based on price change
+            const lineColor = data.change >= 0 ? '#4cd964' : '#ff3b30';
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: title,
+                        data: data.prices,
+                        borderColor: lineColor,
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(45, 140, 255, 0.5)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        if (selectedPair === 'SOLUSDC') {
+                                            label += '$' + context.parsed.y.toFixed(2);
+                                        } else {
+                                            label += context.parsed.y.toFixed(4) + ' SOL';
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                maxTicksLimit: 6
+                            }
+                        },
+                        y: {
+                            display: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                callback: function(value) {
+                                    if (selectedPair === 'SOLUSDC') {
+                                        return '$' + value.toFixed(2);
+                                    } else {
+                                        return value.toFixed(4) + ' SOL';
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'nearest'
+                    },
+                    elements: {
+                        point: {
+                            hoverBackgroundColor: lineColor,
+                            hoverBorderColor: '#fff',
+                            hoverBorderWidth: 2
+                        }
+                    }
+                }
+            });
+        }
 
         // Close modals when clicking outside
         document.querySelectorAll('.modal').forEach(modal => {
@@ -1889,6 +2252,38 @@
                 }
             }, 1000);
         };
+
+        // Initialize chart with some sample data
+        function initializeChartData() {
+            // Generate initial data points for both pairs
+            const now = new Date();
+            
+            // SOL/USDC data
+            let solPrice = 100;
+            for (let i = 0; i < 20; i++) {
+                const time = new Date(now.getTime() - (20 - i) * 60000);
+                const timeLabel = `${time.getHours()}:${time.getMinutes().toString().padStart(2, '0')}`;
+                
+                chartData.SOLUSDC.labels.push(timeLabel);
+                solPrice += (Math.random() - 0.5) * 2;
+                chartData.SOLUSDC.prices.push(solPrice);
+            }
+            
+            // DM/SOL data
+            let dmPrice = 0.5;
+            for (let i = 0; i < 20; i++) {
+                const time = new Date(now.getTime() - (20 - i) * 60000);
+                const timeLabel = `${time.getHours()}:${time.getMinutes().toString().padStart(2, '0')}`;
+                
+                chartData.DMSOL.labels.push(timeLabel);
+                dmPrice += (Math.random() - 0.5) * 0.05;
+                if (dmPrice < 0.1) dmPrice = 0.1;
+                chartData.DMSOL.prices.push(dmPrice);
+            }
+        }
+
+        // Initialize chart data when page loads
+        initializeChartData();
     </script>
 </body>
 </html>
