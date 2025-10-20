@@ -1115,7 +1115,7 @@
                     </div>
 
                     <div class="swap-rate" id="swapRate">
-                        1 DM = 0.5 SOL
+                        1 DM = 0.01 SOL
                     </div>
 
                     <button class="swap-button" id="confirmSwap">Swap</button>
@@ -1818,7 +1818,7 @@
                         
                         // Simulate price change
                         const changePercent = (Math.random() * 5).toFixed(2);
-                        const isPositive = Math.random() > 0.5;
+                        const isPositive = Math.random() > 0.01;
                         
                         priceChange.className = `chart-change ${isPositive ? 'positive' : 'negative'}`;
                         priceChange.innerHTML = `<i class="fas fa-arrow-${isPositive ? 'up' : 'down'}"></i> <span>${isPositive ? '+' : ''}${changePercent}%</span>`;
@@ -1838,12 +1838,12 @@
                     });
             } else if (selectedPair === 'DMSOL') {
                 // For DM/SOL, use simulated data
-                const price = (Math.random() * 0.5 + 0.5).toFixed(4);
+                const price = (Math.random() * 0.01 + 0.01).toFixed(4);
                 currentPrice.textContent = `${price} SOL`;
                 
                 // Simulate price change for DM/SOL
                 const changePercent = (Math.random() * 8).toFixed(2);
-                const isPositive = Math.random() > 0.5;
+                const isPositive = Math.random() > 0.01
                 
                 priceChange.className = `chart-change ${isPositive ? 'positive' : 'negative'}`;
                 priceChange.innerHTML = `<i class="fas fa-arrow-${isPositive ? 'up' : 'down'}"></i> <span>${isPositive ? '+' : ''}${changePercent}%</span>`;
@@ -2085,12 +2085,12 @@
             
             // Simulated exchange rates (DM Coin at $2)
             const rates = {
-                'dm-solana': '1 DM = 0.5 SOL',
+                'dm-solana': '1 DM = 0.01 SOL',
                 'dm-usdt': '1 DM = 2 USDT',
-                'solana-dm': '1 SOL = 2 DM',
-                'solana-usdt': '1 SOL = 100 USDT',
+                'solana-dm': '1 SOL = 100 DM',
+                'solana-usdt': '1 SOL = 200 USDT',
                 'usdt-dm': '1 USDT = 0.5 DM',
-                'usdt-solana': '1 USDT = 0.01 SOL'
+                'usdt-solana': '1 USDT = 0.005 SOL'
             };
             
             const rateKey = `${fromToken}-${toToken}`;
@@ -2108,12 +2108,12 @@
             
             // Simulated conversion rates (DM Coin at $2)
             const conversionRates = {
-                'dm-solana': 0.5,
+                'dm-solana': 0.01,
                 'dm-usdt': 2,
-                'solana-dm': 2,
-                'solana-usdt': 100,
+                'solana-dm': 100,
+                'solana-usdt': 200,
                 'usdt-dm': 0.5,
-                'usdt-solana': 0.01
+                'usdt-solana': 0.005
             };
             
             const rateKey = `${fromToken}-${toToken}`;
@@ -2139,9 +2139,9 @@
             if (!userData || !userData.assets) return;
             
             // Simulate price fluctuations
-            const dmChange = (Math.random() - 0.5) * 4;
-            const solanaChange = (Math.random() - 0.5) * 3;
-            const usdtChange = (Math.random() - 0.1) * 0.5;
+            const dmChange = (Math.random() - 0.01) * 4;
+            const solanaChange = (Math.random() - 0.01) * 3;
+            const usdtChange = (Math.random() - 0.005) * 0.5;
             
             // Update DM Coin price (fixed at $2 base)
             const dmPrice = 2 * (1 + dmChange / 100);
@@ -2197,37 +2197,13 @@
             // Only add demo data if user has no transactions
             if (!userData.transactions || userData.transactions.length === 0) {
                 const demoAssets = {
-                    dm: { amount: 1250.75, value: 2501.50 },
-                    solana: { amount: 12.5, value: 1245.80 },
-                    usdt: { amount: 520.45, value: 520.45 }
+                    dm: { amount: 0, value: 0 },
+                    solana: { amount: 0, value: 0 },
+                    usdt: { amount: 0, value: 0 }
                 };
                 
-                const demoTransactions = [
-                    {
-                        type: 'receive',
-                        token: 'DM',
-                        amount: 250,
-                        description: 'Received DM Coin',
-                        details: 'From: 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b',
-                        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
-                    },
-                    {
-                        type: 'send',
-                        token: 'SOL',
-                        amount: 2.5,
-                        description: 'Sent Solana',
-                        details: 'To: 5vDjK6EitHjY7yL9X2n2L2W2n2L2W2n2L2W2n2L2W2n2L',
-                        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
-                    },
-                    {
-                        type: 'swap',
-                        token: 'SOL',
-                        amount: 5,
-                        description: 'Swapped SOL to DM',
-                        details: 'DragonSwap',
-                        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days ago
-                    }
-                ];
+                
+              
                 
                 // Update assets
                 updateAssets(demoAssets);
@@ -2265,18 +2241,18 @@
                 const timeLabel = `${time.getHours()}:${time.getMinutes().toString().padStart(2, '0')}`;
                 
                 chartData.SOLUSDC.labels.push(timeLabel);
-                solPrice += (Math.random() - 0.5) * 2;
+                solPrice += (Math.random() - 0.01) * 2;
                 chartData.SOLUSDC.prices.push(solPrice);
             }
             
             // DM/SOL data
-            let dmPrice = 0.5;
+            let dmPrice = 0.01;
             for (let i = 0; i < 20; i++) {
                 const time = new Date(now.getTime() - (20 - i) * 60000);
                 const timeLabel = `${time.getHours()}:${time.getMinutes().toString().padStart(2, '0')}`;
                 
                 chartData.DMSOL.labels.push(timeLabel);
-                dmPrice += (Math.random() - 0.5) * 0.05;
+                dmPrice += (Math.random() - 0.01) * 0.05;
                 if (dmPrice < 0.1) dmPrice = 0.1;
                 chartData.DMSOL.prices.push(dmPrice);
             }
