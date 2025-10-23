@@ -282,24 +282,7 @@
             width: 42px;
             height: 42px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 14px;
-            color: white;
-        }
-
-        .dm-coin {
-            background-color: var(--dm-coin);
-        }
-
-        .solana {
-            background: linear-gradient(135deg, var(--solana-purple), var(--solana-green));
-        }
-
-        .usdt {
-            background-color: #26a17b;
+            object-fit: cover;
         }
 
         .asset-details {
@@ -439,6 +422,12 @@
             font-size: 20px;
             color: white;
             font-weight: 700;
+        }
+
+        .dm-coin-icon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
         }
 
         .dm-coin-info h3 {
@@ -1114,7 +1103,7 @@
                 </div>
 
                 <div class="dm-coin-highlight">
-                    <div class="dm-coin-icon">
+                    <div class="dm-coin-icon" id="dmHighlightIcon">
                         DM
                     </div>
                     <div class="dm-coin-info">
@@ -1136,7 +1125,7 @@
                     <div class="browser-header">
                         <div class="browser-url-bar">
                             <i class="fas fa-lock"></i>
-                            <input type="text" placeholder="Search or type URL" id="browserUrl">
+                            <input type="text" placeholder="Search Google or type URL" id="browserUrl">
                             <i class="fas fa-search"></i>
                         </div>
                         <div class="browser-controls">
@@ -1157,7 +1146,7 @@
                         <div class="browser-view">
                             <h3 class="browser-search-title">Popular DApps</h3>
                             <div class="dapp-grid">
-                                <div class="dapp-item">
+                                <div class="dapp-item" id="dapp-dragonswap">
                                     <div class="dapp-icon">
                                         <i class="fas fa-exchange-alt"></i>
                                     </div>
@@ -1169,19 +1158,19 @@
                                     </div>
                                     <div class="dapp-name">DM Farm</div>
                                 </div>
-                                <div class="dapp-item">
+                                <a href="http://airdrop.dragonofmetaverse.xyz/" target="_blank" class="dapp-item" style="text-decoration: none; color: inherit;">
                                     <div class="dapp-icon">
                                         <i class="fas fa-gamepad"></i>
                                     </div>
                                     <div class="dapp-name">DM Games</div>
-                                </div>
+                                </a>
                                 <div class="dapp-item">
                                     <div class="dapp-icon">
                                         <i class="fas fa-landmark"></i>
                                     </div>
                                     <div class="dapp-name">DM Bank</div>
                                 </div>
-                                <div class="dapp-item">
+                                <div class="dapp-item" id="dapp-dmchart">
                                     <div class="dapp-icon">
                                         <i class="fas fa-chart-line"></i>
                                     </div>
@@ -1504,10 +1493,11 @@
             const totalBalance = calculateTotalBalance();
             document.getElementById('totalBalance').textContent = `$${totalBalance.toFixed(2)}`;
             
-            // Update DM balance info
+            // Update DM balance info and icon
             const dmAmount = userData.assets.dm.amount || 0;
             const dmValue = userData.assets.dm.value || 0;
             document.getElementById('dmBalanceInfo').textContent = `Your DM balance: ${dmAmount.toFixed(2)} DM ($${dmValue.toFixed(2)})`;
+            document.getElementById('dmHighlightIcon').innerHTML = `<img src="https://pbs.twimg.com/profile_images/1894651185182752768/_YJ53XWH_400x400.jpg" alt="DM Coin Logo">`;
             
             // Update assets list
             updateAssetsList();
@@ -1558,28 +1548,26 @@
             const assetItem = document.createElement('div');
             assetItem.className = 'asset-item';
             
-            let iconClass = '';
+            let iconSrc = '';
             let iconText = '';
             
             switch(type) {
                 case 'dm':
-                    iconClass = 'dm-coin';
+                    iconSrc = 'https://pbs.twimg.com/profile_images/1894651185182752768/_YJ53XWH_400x400.jpg';
                     iconText = 'DM';
                     break;
                 case 'solana':
-                    iconClass = 'solana';
+                    iconSrc = 'data:image/jpeg;base64,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';
                     iconText = 'SOL';
                     break;
                 case 'usdt':
-                    iconClass = 'usdt';
+                    iconSrc = 'data:image/png;base64,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';
                     iconText = 'USDT';
                     break;
             }
             
             assetItem.innerHTML = `
-                <div class="asset-icon ${iconClass}">
-                    ${iconText}
-                </div>
+                <img src="${iconSrc}" alt="${name} logo" class="asset-icon">
                 <div class="asset-details">
                     <div class="asset-name">
                         <span>${name}</span>
@@ -1600,7 +1588,7 @@
             transactionList.innerHTML = '';
 
             if (!userData || !userData.transactions) {
-                transactionList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No transactions yet</p>';
+                transactionList.innerHTML = '<p style=\"text-align: center; color: var(--text-secondary); padding: 20px;\">No transactions yet</p>';
                 return;
             }
 
@@ -1608,7 +1596,7 @@
             const transactionsArray = Object.values(userData.transactions);
             
             if (transactionsArray.length === 0) {
-                transactionList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No transactions yet</p>';
+                transactionList.innerHTML = '<p style=\"text-align: center; color: var(--text-secondary); padding: 20px;\">No transactions yet</p>';
                 return;
             }
             
@@ -1631,7 +1619,6 @@
             const transactionItem = document.createElement('div');
             transactionItem.className = 'transaction-item';
             
-            let iconClass = '';
             let icon = '';
             let amountClass = '';
             
@@ -1830,25 +1817,27 @@
             authError.style.display = 'block';
         }
 
+        // Helper function to navigate between sections
+        function navigateToSection(targetId) {
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+                if (nav.getAttribute('data-target') === targetId) {
+                    nav.classList.add('active');
+                }
+            });
+
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(targetId).classList.add('active');
+        }
+
+
         // Navigation functionality
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function() {
-                // Remove active class from all nav items
-                document.querySelectorAll('.nav-item').forEach(nav => {
-                    nav.classList.remove('active');
-                });
-                
-                // Add active class to clicked nav item
-                this.classList.add('active');
-                
-                // Hide all sections
-                document.querySelectorAll('.section').forEach(section => {
-                    section.classList.remove('active');
-                });
-                
-                // Show the target section
                 const targetId = this.getAttribute('data-target');
-                document.getElementById(targetId).classList.add('active');
+                navigateToSection(targetId);
                 
                 // If chart section is selected, load chart data
                 if (targetId === 'chart') {
@@ -1890,32 +1879,12 @@
 
         // Swap functionality
         document.getElementById('swapBtn').addEventListener('click', function() {
-            // Navigate to swap section
-            document.querySelectorAll('.nav-item').forEach(nav => {
-                nav.classList.remove('active');
-            });
-            document.querySelector('[data-target="swap"]').classList.add('active');
-            
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            document.getElementById('swap').classList.add('active');
+            navigateToSection('swap');
         });
 
         // Chart button functionality
         chartBtn.addEventListener('click', function() {
-            // Navigate to chart section
-            document.querySelectorAll('.nav-item').forEach(nav => {
-                nav.classList.remove('active');
-            });
-            document.querySelector('[data-target="chart"]').classList.add('active');
-            
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            document.getElementById('chart').classList.add('active');
-            
-            // Load chart data
+            navigateToSection('chart');
             loadChartData();
         });
 
@@ -2252,10 +2221,19 @@
         // Browser functionality
         document.getElementById('browserUrl').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                const url = this.value;
-                if (url) {
-                    alert(`Navigating to: ${url}`);
-                    // In a real app, this would load the URL in the browser view
+                const query = this.value.trim();
+                if (query) {
+                    let url;
+                    // Simple check if it's likely a URL
+                    if (query.includes('.') && !query.includes(' ')) {
+                        // If it doesn't have a protocol, add https://
+                        url = query.startsWith('http') ? query : `https://${query}`;
+                    } else {
+                        // Otherwise, treat as a Google search query
+                        url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                    }
+                    // For this app, open in a new browser tab
+                    window.open(url, '_blank');
                 }
             }
         });
@@ -2297,7 +2275,7 @@
         // Update prices every 10 seconds
         setInterval(updatePrices, 10000);
 
-        // Simulate loading animation
+        // Simulate loading animation and add dApp navigation
         document.addEventListener('DOMContentLoaded', function() {
             // Add subtle animation to balance card
             const balanceCard = document.querySelector('.balance-card');
@@ -2311,6 +2289,16 @@
                     balanceCard.style.opacity = '1';
                 }, 300);
             }
+
+            // DApp navigation from browser section
+            document.getElementById('dapp-dragonswap').addEventListener('click', () => {
+                navigateToSection('swap');
+            });
+
+            document.getElementById('dapp-dmchart').addEventListener('click', () => {
+                navigateToSection('chart');
+                loadChartData(); // Also load chart data when navigating
+            });
         });
 
         // Initialize swap rates
@@ -2328,32 +2316,22 @@
                     usdt: { amount: 0, value: 0 }
                 };
                 
-                
-              
-                
                 // Update assets
                 updateAssets(demoAssets);
-                
-                // Add transactions
-                database.ref('users/' + currentUser.uid + '/transactions').set(demoTransactions)
-                    .catch((error) => {
-                        console.error('Error adding demo transactions:', error);
-                    });
             }
         }
 
         // Call addDemoData when user data is loaded
-        // This is a simple way to detect first-time users
         const originalLoadUserData = loadUserData;
         loadUserData = function() {
             originalLoadUserData();
-            // Check if we need to add demo data after a short delay
             setTimeout(() => {
-                if (currentUser && userData && (!userData.transactions || userData.transactions.length === 0)) {
+                if (currentUser && userData && (!userData.transactions || Object.keys(userData.transactions).length === 0)) {
                     addDemoData();
                 }
             }, 1000);
         };
+
 
         // Initialize chart with some sample data
         function initializeChartData() {
